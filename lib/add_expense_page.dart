@@ -8,19 +8,33 @@ class AddExpensePage extends StatefulWidget {
 }
 
 class _AddExpensePageState extends State<AddExpensePage> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _amountController = TextEditingController();
 
   void _save() {
-    final title = _controller.text.trim();
+    final title = _titleController.text.trim();
+    final amountText = _amountController.text.trim();
 
-    if (title.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Please enter a title")));
+    if (title.isEmpty || amountText.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enter title and amount")),
+      );
       return;
     }
 
-    Navigator.pop(context, title);
+    final amount = double.tryParse(amountText);
+
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Enter a valid amount")),
+      );
+      return;
+    }
+
+    Navigator.pop(context, {
+      'title': title,
+      'amount': amount,
+    });
   }
 
   @override
@@ -32,14 +46,26 @@ class _AddExpensePageState extends State<AddExpensePage> {
         child: Column(
           children: [
             TextField(
-              controller: _controller,
+              controller: _titleController,
               decoration: const InputDecoration(
                 labelText: "Expense title",
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _amountController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: "Amount",
+                border: OutlineInputBorder(),
+              ),
+            ),
             const SizedBox(height: 20),
-            ElevatedButton(onPressed: _save, child: const Text("Save")),
+            ElevatedButton(
+              onPressed: _save,
+              child: const Text("Save"),
+            ),
           ],
         ),
       ),
