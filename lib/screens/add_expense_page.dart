@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import '../models/expense.dart';
 
 class AddExpensePage extends StatefulWidget {
-  const AddExpensePage({super.key});
+  final Expense? expense; // 👈 optional for edit mode
+
+  const AddExpensePage({super.key, this.expense});
 
   @override
   State<AddExpensePage> createState() => _AddExpensePageState();
@@ -10,6 +13,19 @@ class AddExpensePage extends StatefulWidget {
 class _AddExpensePageState extends State<AddExpensePage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
+
+  bool get _isEditMode => widget.expense != null;
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (_isEditMode) {
+      _titleController.text = widget.expense!.title;
+      _amountController.text =
+          widget.expense!.amount.toString();
+    }
+  }
 
   void _save() {
     final title = _titleController.text.trim();
@@ -31,16 +47,22 @@ class _AddExpensePageState extends State<AddExpensePage> {
       return;
     }
 
-    Navigator.pop(context, {
-      'title': title,
-      'amount': amount,
-    });
+    Navigator.pop(
+      context,
+      Expense(
+        title: title,
+        amount: amount,
+        date: DateTime.now(),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Add Expense")),
+      appBar: AppBar(
+        title: Text(_isEditMode ? "Edit Expense" : "Add Expense"),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -62,9 +84,22 @@ class _AddExpensePageState extends State<AddExpensePage> {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _save,
-              child: const Text("Save"),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _save,
+                    child: const Text("Save"),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text("Cancel"),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'expense.dart';
+import '../models/expense.dart';
 import 'expense_item.dart';
 import 'add_expense_page.dart';
 
@@ -12,30 +12,67 @@ class ExpensesHomePage extends StatefulWidget {
 
 class _ExpensesHomePageState extends State<ExpensesHomePage> {
   final List<Expense> _expenses = [
-    
+    Expense(
+      title: "Groceries",
+      amount: 1200,
+      date: DateTime.now(),
+    ),
+    Expense(
+      title: "Coffee",
+      amount: 150,
+      date: DateTime.now(),
+    ),
+    Expense(
+      title: "Transport",
+      amount: 300,
+      date: DateTime.now(),
+    ),
   ];
 
+  // ======================
+  // ADD EXPENSE
+  // ======================
   Future<void> _navigateToAddExpense() async {
     final result = await Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AddExpensePage()),
+      MaterialPageRoute(
+        builder: (context) => const AddExpensePage(),
+      ),
     );
 
     if (!mounted) return;
 
-    if (result != null) {
+    if (result != null && result is Expense) {
       setState(() {
-        _expenses.add(
-          Expense(
-            title: result['title'],
-            amount: result['amount'],
-            date: DateTime.now(),
-          ),
-        );
+        _expenses.add(result);
       });
     }
   }
 
+  // ======================
+  // EDIT EXPENSE
+  // ======================
+  Future<void> _navigateToEditExpense(int index) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) =>
+            AddExpensePage(expense: _expenses[index]),
+      ),
+    );
+
+    if (!mounted) return;
+
+    if (result != null && result is Expense) {
+      setState(() {
+        _expenses[index] = result;
+      });
+    }
+  }
+
+  // ======================
+  // UI
+  // ======================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +90,11 @@ class _ExpensesHomePageState extends State<ExpensesHomePage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.receipt_long, size: 64, color: Colors.grey),
+                  Icon(
+                    Icons.receipt_long,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
                   SizedBox(height: 16),
                   Text(
                     "No expenses yet",
@@ -68,11 +109,17 @@ class _ExpensesHomePageState extends State<ExpensesHomePage> {
               ),
             )
           : ListView.separated(
+              padding: const EdgeInsets.all(8),
               itemCount: _expenses.length,
               separatorBuilder: (context, index) =>
                   const SizedBox(height: 4),
               itemBuilder: (context, index) {
-                return ExpenseItem(expense: _expenses[index]);
+                return GestureDetector(
+                  onTap: () => _navigateToEditExpense(index),
+                  child: ExpenseItem(
+                    expense: _expenses[index],
+                  ),
+                );
               },
             ),
     );
